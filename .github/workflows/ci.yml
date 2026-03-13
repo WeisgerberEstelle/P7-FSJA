@@ -1,0 +1,139 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  # ──────────────────────────────────────────────
+  # Backend : Build, Tests, Couverture
+  # ──────────────────────────────────────────────
+  backend:
+    name: Backend - Build & Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: back
+
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Nécessaire pour l'analyse SonarQube
+
+      - name: Setup Java 17 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('back/gradle/wrapper/gradle-wrapper.properties', 'back/build.gradle') }}
+          restore-keys: gradle-${{ runner.os }}-
+
+      - name: Rendre gradlew exécutable
+        run: chmod +x gradlew
+
+      - name: Build et Tests
+        run: ./gradlew build
+
+      - name: Upload du rapport de couverture
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: backend-coverage-report
+          path: back/build/reports/jacoco/test/jacocoTestReport.xml
+
+      - name: Upload des rapports de tests
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: backend-test-report
+          path: back/build/reports/tests/
+
+  # ──────────────────────────────────────────────
+  # Frontend : Build, Tests, Couverture
+  # ──────────────────────────────────────────────
+  frontend:
+    name: Frontend - Build & Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: front
+
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js 20 LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: front/package-lock.json
+
+      - name: Installation des dépendances
+        run: npm ci
+
+      - name: Build production
+        run: npx @angular/cli build --configuration production
+
+      - name: Tests unitaires
+        run: npx @angular/cli test --no-watch --browsers=ChromeHeadless --code-coverage
+
+      - name: Upload du rapport de couverture
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: frontend-coverage-report
+          path: front/coverage/
+
+      - name: Upload des rapports de tests
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: frontend-test-report
+          path: front/coverage/
+
+  # ──────────────────────────────────────────────
+  # Analyse qualité & sécurité - SonarQube Cloud
+  # ──────────────────────────────────────────────
+  sonarqube:
+    name: SonarQube Cloud Analysis
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download rapport couverture backend
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-coverage-report
+          path: back/build/reports/jacoco/test/
+
+      - name: Download rapport couverture frontend
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-coverage-report
+          path: front/coverage/
+
+      - name: SonarQube Cloud Scan
+        uses: SonarSource/sonarqube-scan-action@v5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

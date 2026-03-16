@@ -1,0 +1,120 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+
+jobs:
+  # ──────────────────────────────────────────────
+  # Build des artefacts
+  # ──────────────────────────────────────────────
+  build-artifacts:
+    name: Build Release Artifacts
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+
+      # ── Backend ──
+      - name: Setup Java 17 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Build backend JAR
+        working-directory: back
+        run: chmod +x gradlew && ./gradlew build -x test
+
+      # ── Frontend ──
+      - name: Setup Node.js 20 LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: front/package-lock.json
+
+      - name: Build frontend
+        working-directory: front
+        run: npm ci && npx @angular/cli build --configuration production
+
+      - name: Archiver le build frontend
+        run: tar -czf microcrm-front-${{ github.ref_name }}.tar.gz -C front/dist/microcrm/browser .
+
+      - name: Renommer le JAR backend
+        run: cp back/build/libs/microcrm-0.0.1-SNAPSHOT.jar microcrm-back-${{ github.ref_name }}.jar
+
+      # ── Upload artefacts ──
+      - name: Upload artefacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-artifacts
+          path: |
+            microcrm-back-${{ github.ref_name }}.jar
+            microcrm-front-${{ github.ref_name }}.tar.gz
+
+  # ──────────────────────────────────────────────
+  # Création de la release GitHub
+  # ──────────────────────────────────────────────
+  create-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: build-artifacts
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download artefacts
+        uses: actions/download-artifact@v4
+        with:
+          name: release-artifacts
+          path: artifacts/
+
+      - name: Générer le changelog
+        id: changelog
+        run: |
+          PREVIOUS_TAG=$(git tag --sort=-v:refname | sed -n '2p')
+          if [ -z "$PREVIOUS_TAG" ]; then
+            CHANGELOG=$(git log --pretty=format:"- %s (%h)" ${{ github.ref_name }})
+          else
+            CHANGELOG=$(git log --pretty=format:"- %s (%h)" ${PREVIOUS_TAG}..${{ github.ref_name }})
+          fi
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Créer la release GitHub
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: MicroCRM ${{ github.ref_name }}
+          body: |
+            ## MicroCRM ${{ github.ref_name }}
+
+            ### Changements
+            ${{ steps.changelog.outputs.changelog }}
+
+            ### Artefacts
+            - `microcrm-back-${{ github.ref_name }}.jar` — Backend Spring Boot (Java 17)
+            - `microcrm-front-${{ github.ref_name }}.tar.gz` — Frontend Angular (fichiers statiques)
+
+            ### Utilisation
+            ```bash
+            # Backend
+            java -jar microcrm-back-${{ github.ref_name }}.jar
+
+            # Frontend (extraire puis servir avec un serveur web)
+            tar -xzf microcrm-front-${{ github.ref_name }}.tar.gz -C /var/www/html
+            ```
+          files: |
+            artifacts/microcrm-back-${{ github.ref_name }}.jar
+            artifacts/microcrm-front-${{ github.ref_name }}.tar.gz
+          draft: false
+          prerelease: false

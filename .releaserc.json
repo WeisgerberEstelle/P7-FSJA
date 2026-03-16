@@ -6,6 +6,9 @@
     ["@semantic-release/changelog", {
       "changelogFile": "CHANGELOG.md"
     }],
+    ["@semantic-release/exec", {
+      "publishCmd": "echo \"new_release_version=${nextRelease.version}\" >> $GITHUB_OUTPUT && echo \"new_release_published=true\" >> $GITHUB_OUTPUT"
+    }],
     ["@semantic-release/github", {
       "assets": [
         { "path": "microcrm-back.jar", "label": "Backend - Spring Boot JAR (Java 17)" },

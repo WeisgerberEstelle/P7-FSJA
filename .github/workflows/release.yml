@@ -1,0 +1,63 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  # ──────────────────────────────────────────────
+  # Semantic Release : version, changelog, artefacts
+  # ──────────────────────────────────────────────
+  release:
+    name: Semantic Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      # ── Backend ──
+      - name: Setup Java 17 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Build backend JAR
+        working-directory: back
+        run: chmod +x gradlew && ./gradlew build -x test
+
+      - name: Préparer artefact backend
+        run: cp back/build/libs/microcrm-0.0.1-SNAPSHOT.jar microcrm-back.jar
+
+      # ── Frontend ──
+      - name: Setup Node.js 20 LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: front/package-lock.json
+
+      - name: Build frontend
+        working-directory: front
+        run: npm ci && npx @angular/cli build --configuration production
+
+      - name: Préparer artefact frontend
+        run: tar -czf microcrm-front.tar.gz -C front/dist/microcrm/browser .
+
+      # ── Semantic Release ──
+      - name: Install semantic-release et plugins
+        run: npm install -g semantic-release @semantic-release/changelog @semantic-release/git @semantic-release/github @semantic-release/exec
+
+      - name: Semantic Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx semantic-release

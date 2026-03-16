@@ -1,3 +1,15 @@
+# [1.1.0](https://github.com/WeisgerberEstelle/P7-FSJA/compare/v1.0.0...v1.1.0) (2026-03-16)
+
+
+### Bug Fixes
+
+* release attend que la CI soit passée avant de se lancer ([e5c3805](https://github.com/WeisgerberEstelle/P7-FSJA/commit/e5c3805dcf11c12194864d6bfe1fff2c95791cb9))
+
+
+### Features
+
+* retag images Docker avec la version semver après release ([b25bee8](https://github.com/WeisgerberEstelle/P7-FSJA/commit/b25bee8d2c7fb98f2a8feb53a06244a9af1525cf))
+
 # 1.0.0 (2026-03-16)
 
 

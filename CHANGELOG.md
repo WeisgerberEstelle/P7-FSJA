@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/WeisgerberEstelle/P7-FSJA/compare/v1.1.0...v1.2.0) (2026-03-16)
+
+
+### Features
+
+* mise à jour automatique des versions dans build.gradle et package.json ([a3bbb92](https://github.com/WeisgerberEstelle/P7-FSJA/commit/a3bbb9238cb447e181aba164630a1a6f0087408c))
+
 # [1.1.0](https://github.com/WeisgerberEstelle/P7-FSJA/compare/v1.0.0...v1.1.0) (2026-03-16)
 
 

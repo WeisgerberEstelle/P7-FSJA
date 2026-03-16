@@ -1,57 +1,55 @@
-FROM node:20-alpine as front-build
-
-COPY ./front /src
-
-WORKDIR /src
-
-RUN npm ci \
-    && npx @angular/cli build --optimization
-
-FROM gradle:jdk17 as back-build
-
-COPY ./back /src
+# ──────────────────────────────────────────────
+# Stage 1 : Build du frontend Angular
+# ──────────────────────────────────────────────
+FROM node:20-alpine AS front-build
 
 WORKDIR /src
 
-RUN ./gradlew build
+COPY ./front/package.json ./front/package-lock.json ./
 
-FROM alpine:3.19 as front
+RUN npm ci
+
+COPY ./front .
+
+RUN npx @angular/cli build --configuration production
+
+# ──────────────────────────────────────────────
+# Stage 2 : Build du backend Spring Boot
+# ──────────────────────────────────────────────
+FROM gradle:8-jdk17 AS back-build
+
+WORKDIR /src
+
+COPY ./back .
+
+RUN chmod +x gradlew && ./gradlew build -x test
+
+# ──────────────────────────────────────────────
+# Stage 3 : Image de production frontend (Caddy)
+# ──────────────────────────────────────────────
+FROM caddy:2-alpine AS front
 
 COPY --from=front-build /src/dist/microcrm/browser /app/front
-COPY misc/docker/Caddyfile /app/Caddyfile
-
-RUN apk add caddy
-
-WORKDIR /app
+COPY misc/docker/Caddyfile /etc/caddy/Caddyfile
 
 EXPOSE 80
 EXPOSE 443
 
-CMD ["/usr/sbin/caddy", "run"]
+USER nobody
 
-FROM alpine:3.19 as back
+# ──────────────────────────────────────────────
+# Stage 4 : Image de production backend (Temurin)
+# ──────────────────────────────────────────────
+FROM eclipse-temurin:17-jre-jammy AS back
 
-COPY --from=back-build /src/build/libs/microcrm-0.0.1-SNAPSHOT.jar /app/back/microcrm-0.0.1-SNAPSHOT.jar
-
-RUN apk add openjdk17-jre-headless
+RUN groupadd -r appgroup && useradd -r -g appgroup appuser
 
 WORKDIR /app
+
+COPY --from=back-build /src/build/libs/microcrm-0.0.1-SNAPSHOT.jar app.jar
 
 EXPOSE 8080
 
-CMD ["java", "-jar", "/app/back/microcrm-0.0.1-SNAPSHOT.jar"]
+USER appuser
 
-FROM alpine:3.19 as standalone
-
-COPY --from=front / /
-COPY --from=back / /
-COPY misc/docker/supervisor.ini /app/supervisor.ini
-
-RUN apk add supervisor
-
-WORKDIR /app
-
-CMD ["/usr/bin/supervisord", "-c", "/app/supervisor.ini"]
-
-
-
+CMD ["java", "-jar", "app.jar"]

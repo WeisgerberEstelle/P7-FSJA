@@ -3,3 +3,8 @@
 /front/dist
 /front/node_modules
 /front/.angular
+/docs
+.git
+.github
+*.md
+sonar-project.properties

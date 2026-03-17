@@ -64,7 +64,7 @@ jobs:
         run: chmod +x gradlew && ./gradlew build -x test
 
       - name: Préparer artefact backend
-        run: cp back/build/libs/microcrm-0.0.1-SNAPSHOT.jar microcrm-back.jar
+        run: cp back/build/libs/microcrm-*.jar microcrm-back.jar
 
       # ── Frontend ──
       - name: Setup Node.js 20 LTS

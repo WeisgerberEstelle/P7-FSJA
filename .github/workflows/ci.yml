@@ -66,6 +66,12 @@ jobs:
           name: backend-classes
           path: back/build/classes/
 
+      - name: Upload du JAR (pour Release)
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-jar
+          path: back/build/libs/microcrm-*.jar
+
   # ──────────────────────────────────────────────
   # Frontend : Build, Tests, Couverture
   # ──────────────────────────────────────────────
@@ -104,6 +110,12 @@ jobs:
         with:
           name: frontend-coverage-report
           path: front/coverage/
+
+      - name: Upload du dist frontend (pour Release)
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: front/dist/microcrm/browser/
 
   # ──────────────────────────────────────────────
   # Analyse qualité & sécurité - SonarQube Cloud

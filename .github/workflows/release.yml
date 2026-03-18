@@ -52,36 +52,35 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      # ── Backend ──
-      - name: Setup Java 17 (Temurin)
-        uses: actions/setup-java@v4
+      # ── Téléchargement des artifacts du workflow CI ──
+      - name: Download backend JAR
+        uses: actions/download-artifact@v4
         with:
-          distribution: temurin
-          java-version: '17'
-
-      - name: Build backend JAR
-        working-directory: back
-        run: chmod +x gradlew && ./gradlew build -x test
+          name: backend-jar
+          path: artifacts/backend
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Préparer artefact backend
-        run: cp back/build/libs/microcrm-*.jar microcrm-back.jar
+        run: cp artifacts/backend/microcrm-*.jar microcrm-back.jar
 
-      # ── Frontend ──
+      - name: Download frontend dist
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-dist
+          path: artifacts/frontend
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Préparer artefact frontend
+        run: tar -czf microcrm-front.tar.gz -C artifacts/frontend .
+
+      # ── Semantic Release ──
       - name: Setup Node.js 20 LTS
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: front/package-lock.json
 
-      - name: Build frontend
-        working-directory: front
-        run: npm ci && npx @angular/cli build --configuration production
-
-      - name: Préparer artefact frontend
-        run: tar -czf microcrm-front.tar.gz -C front/dist/microcrm/browser .
-
-      # ── Semantic Release ──
       - name: Install semantic-release et plugins
         run: npm install -g semantic-release @semantic-release/changelog @semantic-release/git @semantic-release/github @semantic-release/exec
 

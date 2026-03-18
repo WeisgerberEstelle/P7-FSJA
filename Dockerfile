@@ -46,7 +46,7 @@ RUN groupadd -r appgroup && useradd -r -g appgroup appuser
 
 WORKDIR /app
 
-COPY --from=back-build /src/build/libs/microcrm-0.0.1-SNAPSHOT.jar app.jar
+COPY --from=back-build /src/build/libs/microcrm-*.jar app.jar
 
 EXPOSE 8080
 

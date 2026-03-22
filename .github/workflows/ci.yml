@@ -2,14 +2,13 @@ name: CI/CD Pipeline
 
 on:
   push:
+    branches:
+      - main
   pull_request:
     branches:
       - main
 
 jobs:
-  # ──────────────────────────────────────────────
-  # Backend : Build, Tests, Couverture
-  # ──────────────────────────────────────────────
   backend:
     name: Backend - Build & Tests
     runs-on: ubuntu-latest
@@ -21,7 +20,7 @@ jobs:
       - name: Checkout du code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Nécessaire pour l'analyse SonarQube
+          fetch-depth: 0
 
       - name: Setup Java 17 (Temurin)
         uses: actions/setup-java@v4
@@ -70,9 +69,6 @@ jobs:
           name: backend-jar
           path: back/build/libs/microcrm-*.jar
 
-  # ──────────────────────────────────────────────
-  # Frontend : Build, Tests, Couverture
-  # ──────────────────────────────────────────────
   frontend:
     name: Frontend - Build & Tests
     runs-on: ubuntu-latest
@@ -115,9 +111,6 @@ jobs:
           name: frontend-dist
           path: front/dist/microcrm/browser/
 
-  # ──────────────────────────────────────────────
-  # Analyse qualité & sécurité - SonarQube Cloud
-  # ──────────────────────────────────────────────
   sonarqube:
     name: SonarQube Cloud Analysis
     runs-on: ubuntu-latest
@@ -159,9 +152,6 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
-  # ──────────────────────────────────────────────
-  # CD : Publication des images Docker sur GHCR
-  # ──────────────────────────────────────────────
   publish-docker:
     name: Publish Docker Images
     runs-on: ubuntu-latest

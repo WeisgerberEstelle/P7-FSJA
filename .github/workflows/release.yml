@@ -63,7 +63,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Préparer artefact backend
-        run: cp artifacts/backend/microcrm-*.jar microcrm-back.jar
+        run: find artifacts/backend -name "microcrm-*.jar" ! -name "*-plain.jar" -exec cp {} microcrm-back.jar \;
 
       - name: Download frontend dist
         uses: actions/download-artifact@v4

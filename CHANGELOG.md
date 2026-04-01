@@ -1,3 +1,30 @@
+# [1.3.0](https://github.com/WeisgerberEstelle/P7-FSJA/compare/v1.2.0...v1.3.0) (2026-04-01)
+
+
+### Bug Fixes
+
+* **ci:** ajouter la permission actions:read pour le téléchargement des artifacts cross-workflow ([750427b](https://github.com/WeisgerberEstelle/P7-FSJA/commit/750427b0645dd2be83027063aa7eee34a13affd7))
+* **ci:** améliorer la pipeline CI/CD ([2c512e6](https://github.com/WeisgerberEstelle/P7-FSJA/commit/2c512e6e34a6ea2d66ee167997da513d41d75bdd))
+* **ci:** améliorer la pipeline CI/CD ([ee0fbfb](https://github.com/WeisgerberEstelle/P7-FSJA/commit/ee0fbfb7336cff63042b803a8420302ca92120b6))
+* **ci:** corriger la copie du JAR en excluant le fichier plain.jar ([1cc6075](https://github.com/WeisgerberEstelle/P7-FSJA/commit/1cc607540190d23de283ddbf1ea453efb83a0463))
+* **ci:** filtrer les push sur la branche main uniquement ([4ad3def](https://github.com/WeisgerberEstelle/P7-FSJA/commit/4ad3def52f05a9b620d8b232e8981db05c184801))
+* **ci:** mettre à jour sonarqube-quality-gate-action v1 vers v4 ([bb61310](https://github.com/WeisgerberEstelle/P7-FSJA/commit/bb61310fa489253855d111cea3994b6e709a1859))
+* **ci:** passer Trivy en mode informatif (exit-code 0) ([810aae2](https://github.com/WeisgerberEstelle/P7-FSJA/commit/810aae22af2b1810bd3a02e854ed2ec4d283cb7c))
+* **ci:** revenir à sonarqube-quality-gate-action v1 (v4 inexistante) ([fdc9b25](https://github.com/WeisgerberEstelle/P7-FSJA/commit/fdc9b25418a4fe827f11a76a136f7a3240ee9e7a))
+* **deps:** mettre à jour Spring Boot 3.2.5 vers 3.4.5 ([85a5016](https://github.com/WeisgerberEstelle/P7-FSJA/commit/85a501612c796379af64432052823d22524459ec))
+* **docker:** utiliser un glob pour le nom du JAR dans le Dockerfile ([1a8f600](https://github.com/WeisgerberEstelle/P7-FSJA/commit/1a8f600f52c7539ac826dc9f0a462d36a6b25797))
+
+
+### Features
+
+* **ci:** déclencher le pipeline CI sur push de toutes les branches ([d574e33](https://github.com/WeisgerberEstelle/P7-FSJA/commit/d574e3397a3d7618fbd5ead5942fbff1176ab3d4))
+* **monitoring:** mettre en place la stack ELK pour le monitoring applicatif ([f12b358](https://github.com/WeisgerberEstelle/P7-FSJA/commit/f12b358631634b99092ab8a65c7e14a81f287c8b))
+
+
+### Performance Improvements
+
+* **ci:** réutiliser les artifacts CI dans le workflow release ([5dda4df](https://github.com/WeisgerberEstelle/P7-FSJA/commit/5dda4df2ed499d50258f3ad7ae0d7c4bfcaa1ab7))
+
 # [1.2.0](https://github.com/WeisgerberEstelle/P7-FSJA/compare/v1.1.0...v1.2.0) (2026-03-16)
 
 

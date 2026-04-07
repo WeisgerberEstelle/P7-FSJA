@@ -153,3 +153,65 @@ docker run -it --rm -p 8080:8080 -p 80:80 -p 443:443 orion-microcrm-standalone:l
 ```
 
 L'application sera disponible sur https://localhost et l'API sur http://localhost:8080.
+
+#### Docker Compose
+
+Lancer l'application complète (backend + frontend) en une commande :
+
+```shell
+docker compose up -d
+```
+
+Le frontend attend que le backend soit healthy avant de démarrer. L'application est accessible sur http://localhost (frontend) et http://localhost:8080 (API).
+
+---
+
+## Industrialisation CI/CD
+
+### Choix techniques
+
+| Composant | Outil | Justification |
+| --- | --- | --- |
+| CI/CD | GitHub Actions | Intégré nativement à GitHub, gratuit pour les repos publics, large écosystème d'actions |
+| Qualité de code | SonarQube Cloud | Analyse statique (vulnérabilités, code smells, couverture), Quality Gate bloquant sur les PR |
+| Versioning | semantic-release | Versioning SemVer automatique basé sur les Conventional Commits (`feat:`, `fix:`, `feat!:`) |
+| Registry Docker | GitHub Container Registry (GHCR) | Intégré à GitHub, authentification via `GITHUB_TOKEN`, images liées au repository |
+| Scan de sécurité | Trivy | Scan des vulnérabilités des images Docker (mode informatif) |
+| Couverture backend | JaCoCo | Standard Java, intégré à Gradle, rapports exploitables par SonarQube |
+| Monitoring | ELK (Elasticsearch, Logstash, Kibana) | Centralisation et visualisation des logs applicatifs (backend + frontend) |
+| Serveur web frontend | Caddy | Image officielle alpine, HTTPS automatique, gzip, routing SPA natif |
+| JDK production | Eclipse Temurin 17 | Distribution Adoptium officielle, JRE seul (image minimale) |
+
+### Pipeline CI/CD
+
+Deux workflows GitHub Actions complémentaires :
+
+1. **CI/CD** (`ci.yml`) - sur PR vers `main` et push sur `main` :
+   - Build et tests backend (Gradle + JUnit 5 + JaCoCo)
+   - Build et tests frontend (Angular + Karma/ChromeHeadless)
+   - Analyse SonarQube (Quality Gate)
+   - Publication des images Docker sur GHCR (push `main` uniquement)
+
+2. **Release** (`release.yml`) - après succès de la CI sur `main` :
+   - Versioning automatique via semantic-release
+   - Création de la release GitHub avec artefacts (JAR + archive Angular)
+   - Retag des images Docker avec la version semver
+
+### Monitoring ELK
+
+Lancer la stack de monitoring :
+
+```shell
+docker compose -f docker-compose-elk.yml up -d
+```
+
+- **Kibana** : http://localhost:5601 (dashboard `MicroCRM Monitoring`)
+- **Elasticsearch** : http://localhost:9200
+- Logs backend (Spring Boot) et frontend (Caddy) centralisés via Logstash
+
+### Secrets requis
+
+| Secret | Configuration |
+| --- | --- |
+| `SONAR_TOKEN` | GitHub Settings > Secrets > Actions |
+| `GITHUB_TOKEN` | Fourni automatiquement par GitHub Actions |

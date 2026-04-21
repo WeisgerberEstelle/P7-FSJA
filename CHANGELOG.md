@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/WeisgerberEstelle/P7-FSJA/compare/v1.3.0...v1.4.0) (2026-04-21)
+
+
+### Features
+
+* update read-me ([3274f1a](https://github.com/WeisgerberEstelle/P7-FSJA/commit/3274f1a694976068950c3d3cd26fa5dfef1d169d))
+
 # [1.3.0](https://github.com/WeisgerberEstelle/P7-FSJA/compare/v1.2.0...v1.3.0) (2026-04-01)
 
 
